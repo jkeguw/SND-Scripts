@@ -5,59 +5,53 @@
 *                               Version 2.21.10                                 *
 ********************************************************************************
 
-Created by: pot0to (https://ko-fi.com/pot0to)
-Contributors: Prawellp, Mavi, Allison
+原作者: pot0to (https://ko-fi.com/pot0to)
+贡献者: Prawellp, Mavi, Allison
 State Machine Diagram: https://github.com/pot0to/pot0to-SND-Scripts/blob/main/FateFarmingStateMachine.drawio.png
 
-    -> 2.21.10  Fix call to vbmai preset
-    -> 2.21.9   By Allison
-                Added priority for checking distance to FATE accounting for a
-                    possible lower distance if you teleported.
-                Added FatePriority Setting. Default works the same as before 
-                    but with new check from above. 
+    -> 2.21.10  修复对vbmai预设的调用
+    -> 2.21.9   由Allison提供
+                增加了检查FATE距离的优先级，考虑到如果你传送过可能会有更短的距离。
+                增加了Fate的优先级设置。默认与之前相同但加入了上述新检查。 
                     Progress -> Bonus -> Time Left -> Distance
-                Added setting for if you should wait at the Aetheryte when no 
-                    FATE is found. If you disable, you wait where the FATE 
-                    finished.
-                Added MinWait setting because sometimes 3 seconds felt to long.
-                Changed name of WaitUpTo to match MinWait.
-                Added check to disable targeting with VBM if you are using RSR
-                    for the rotation plugin.
-                Small adjustment to wait time after choosing nextFate, results
-                    in landing further from center of fates upon approach.
-                New extra checks in movement to prevent cast cancelling.
-                May have messed something up when pushed out of the fate.
-                Fixed typo with "should it to Turn" -> "should it do Turn"
+                增加了设置，决定在没有找到FATE时是否在以太之光处等待。如果禁用，你将在FATE结束的地方等待。
+                增加了MinWait设置，因为有时3秒感觉太长了。
+                将WaitUpTo更名为匹配MinWait。
+                增加了检查，如果你使用RSR作为自动输出插件，则禁用VBM的目标锁定。
+                在选择下一个FATE后调整了等待时间，在接近时会降落在FATE中心较远处。
+                新增了移动中的额外检查，防止技能释放被取消。
+                可能在被击退出FATE时有问题。
+                修正了"should it to Turn" -> "should it do Turn"的拼写错误
 
 ********************************************************************************
-*                               Required Plugins                               *
+*                                   插件需求                                    *
 ********************************************************************************
 
-Plugins that are needed for it to work:
+运行所需的插件:
 
-    -> Something Need Doing [Expanded Edition] : (Main Plugin for everything to work)   https://puni.sh/api/repository/croizat
-    -> VNavmesh :   (for Pathing/Moving)    https://puni.sh/api/repository/veyn
-    -> Some form of rotation plugin for attacking enemies. Options are:
+    -> Something Need Doing [Expanded Edition] : (所有功能的主要插件)   https://puni.sh/api/repository/croizat
+    -> VNavmesh :   (自动寻路)    https://puni.sh/api/repository/veyn
+    -> 自动攻击插件。选项有:（译者注：如果你使用AEAssist，忽略此条）
         -> RotationSolver Reborn: https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json       
         -> BossMod Reborn: https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json
         -> Veyn's BossMod: https://puni.sh/api/repository/veyn
         -> Wrath Combo: https://love.puni.sh/ment.json
-    -> Some form of AI dodging. Options are: 
+    -> AI躲避插件. 以下为可选项: 
         -> BossMod Reborn: https://raw.githubusercontent.com/FFXIV-CombatReborn/CombatRebornRepo/main/pluginmaster.json
         -> Veyn's BossMod: https://puni.sh/api/repository/veyn
-    -> TextAdvance: (for interacting with Fate NPCs) https://github.com/NightmareXIV/MyDalamudPlugins/raw/main/pluginmaster.json
-    -> Teleporter :  (for Teleporting to aetherytes [teleport][Exchange][Retainers])
-    -> Lifestream :  (for changing Instances [ChangeInstance][Exchange]) https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json
+    -> TextAdvance: (用于与FATE NPC互动) https://github.com/NightmareXIV/MyDalamudPlugins/raw/main/pluginmaster.json
+    -> Teleporter :  (用于传送到以太之光 [teleport][Exchange][Retainers])
+    -> Lifestream :  (用于换线 [ChangeInstance][Exchange]) https://raw.githubusercontent.com/NightmareXIV/MyDalamudPlugins/main/pluginmaster.json
 
 ********************************************************************************
-*                                Optional Plugins                              *
+*                                    可选插件                                   *
 ********************************************************************************
 
-This Plugins are Optional and not needed unless you have it enabled in the settings:
+这些插件是可选的，除非你在设置中启用了对应功能:
 
-    -> AutoRetainer : (for Retainers [Retainers])   https://love.puni.sh/ment.json
-    -> Deliveroo : (for gc turn ins [TurnIn])   https://plugins.carvel.li/
-    -> YesAlready : (for extracting materia)
+    -> AutoRetainer : (用于雇员 [Retainers])   https://love.puni.sh/ment.json
+    -> Deliveroo : (用于交军票 [TurnIn])   https://plugins.carvel.li/
+    -> YesAlready : (用于精制魔晶石)
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
 ]]
@@ -70,105 +64,109 @@ This Plugins are Optional and not needed unless you have it enabled in the setti
 ********************************************************************************
 ]]
 
---Pre Fate Settings
-Food                                = ""            --Leave "" Blank if you don't want to use any food. If its HQ include <hq> next to the name "Baked Eggplant <hq>"
-Potion                              = ""            --Leave "" Blank if you don't want to use any potions.
-ShouldSummonChocobo                 = true          --Summon chocobo?
-    ResummonChocoboTimeLeft         = 3 * 60        --Resummons chocobo if there's less than this many seconds left on the timer, so it doesn't disappear on you in the middle of a fate.
-    ChocoboStance                   = "Healer"      --Options: Follow/Free/Defender/Healer/Attacker
-    ShouldAutoBuyGysahlGreens       = true          --Automatically buys a 99 stack of Gysahl Greens from the Limsa gil vendor if you're out
-MountToUse                          = "mount roulette"       --The mount you'd like to use when flying between fates
+--FATE前设置
+Food                                = ""            --如果你不想使用任何食物则留空。如果是HQ食物，在名字旁添加<hq>，例如 "水煮蛋 <hq>"
+Potion                              = ""            --如果你不想使用任何药水则留空。
+ShouldSummonChocobo                 = true          --是否召唤陆行鸟
+    ResummonChocoboTimeLeft         = 3 * 60        --如果陆行鸟剩余时间少于此秒数，则重新召唤，以防止它在FATE中途消失。
+    ChocoboStance                   = "治疗战术"      --跟随/自由战术/防护战术/进攻战术/治疗战术
+    ShouldAutoBuyGysahlGreens       = true          --当你用完时，自动从利姆萨罗敏萨商人处购买99个基萨尔野菜
+MountToUse                          = "随机坐骑"       --在FATE之间飞行时使用的坐骑（译者注：如果使用随机坐骑，填写"随机坐骑"，否则填写具体的坐骑名称，注意不要有错别字。）
 FatePriority                        = {"DistanceTeleport", "Progress", "DistanceTeleport", "Bonus", "TimeLeft", "Distance"}
 
 --Fate Combat Settings
-CompletionToIgnoreFate              = 80            --If the fate has more than this much progress already, skip it
-MinTimeLeftToIgnoreFate             = 3*60          --If the fate has less than this many seconds left on the timer, skip it
-CompletionToJoinBossFate            = 0             --If the boss fate has less than this much progress, skip it (used to avoid soloing bosses)
-    CompletionToJoinSpecialBossFates = 20           --For the Special Fates like the Serpentlord Seethes or Mascot Murder
-    ClassForBossFates               = ""            --If you want to use a different class for boss fates, set this to the 3 letter abbreviation
-                                                        --for the class. Ex: "PLD"
-JoinCollectionsFates                = true          --Set to false if you never want to do collections fates
-BonusFatesOnly                      = false         --If true, will only do bonus fates and ignore everything else
+CompletionToIgnoreFate              = 80            --如果FATE已经超过这个百分比，就跳过它
+MinTimeLeftToIgnoreFate             = 3*60          --如果FATE剩余时间少于这个秒数，就跳过它
+CompletionToJoinBossFate            = 0             --如果BOSS FATE百分比低于这个值，就跳过它（避免单挑BOSS）
+    CompletionToJoinSpecialBossFates = 20           --特殊FATE的上值
+    ClassForBossFates               = ""            --如果你想为BOSS FATE使用不同的职业，设置为该职业的3字母缩写
+                                                        --如果你想使用骑士，填写"PLD"
+JoinCollectionsFates                = true          --如果你永远不想做收集类FATE，设为false
+BonusFatesOnly                      = false         --如果为true，只做双倍
 
-MeleeDist                           = 2.5           --Distance for melee. Melee attacks (auto attacks) max distance is 2.59y, 2.60 is "target out of range"
-RangedDist                          = 20            --Distance for ranged. Ranged attacks and spells max distance to be usable is 25.49y, 25.5 is "target out of range"=
+MeleeDist                           = 2.5           --近战距离。近战攻击（自动攻击）最大距离为2.59星码，2.60为"目标超出范围"
+RangedDist                          = 20            --远程距离。远程攻击和法术最大可用距离为25.49星码，25.5为"目标超出范围"
+                                                    --特别提醒：如果你使用的是扇形AOE或以你自身为释放中心的圆形AOE，请按照该扇形AOE的最远攻击距离设置。
 
-RotationPlugin                      = "RSR"         --Options: RSR/BMR/VBM/Wrath/None
-    RSRAoeType                      = "Full"        --Options: Cleave/Full/Off
+RotationPlugin                      = "RSR"         --可选项：RSR/BMR/VBM/Wrath/None。如果你使用AEAssist，请填写None
+    RSRAoeType                      = "Full"        --可选项: Cleave/Full/Off
 
     -- For BMR/VBM/Wrath
-    RotationSingleTargetPreset      = ""            --Preset name with single target strategies (for forlorns). TURN OFF AUTOMATIC TARGETING FOR THIS PRESET
-    RotationAoePreset               = ""            --Preset with AOE + Buff strategies.
-    RotationHoldBuffPreset          = ""            --Preset to hold 2min burst when progress gets to seleted %
-    PercentageToHoldBuff            = 65            --Ideally you'll want to make full use of your buffs, higher than 70% will still waste a few seconds if progress is too fast.
-DodgingPlugin                       = "BMR"         --Options: BMR/VBM/None. If your RotationPlugin is BMR/VBM, then this will be overriden
+    RotationSingleTargetPreset      = ""            --单目标策略预设（用于迷失者/迷失少女）。为此预设关闭自动目标锁定
+    RotationAoePreset               = ""            --带有AOE+Buff策略的预设。
+    RotationHoldBuffPreset          = ""            --当进度达到所选百分比时保持2分钟爆发的预设
+    PercentageToHoldBuff            = 65            --理想情况下，你会希望充分利用你的buff，高于70%在进度过快时仍会浪费几秒钟。
+DodgingPlugin                       = "BMR"         --选项: BMR/VBM/None。如果你的自动输出插件是BMR/VBM，此配置项将被覆盖。
 
 IgnoreForlorns                      = false
     IgnoreBigForlornOnly            = false
 
 --Post Fate Settings
-MinWait                             = 3             --Min number of seconds it should wait until mounting up for next fate.
-MaxWait                             = 10            --Max number of seconds it should wait until mounting up for next fate.
-                                                        --Actual wait time will be a randomly generated number between MinWait and MaxWait.
-DownTimeWaitAtNearestAetheryte      = false         --When waiting for fates to pop, should you fly to the nearest Aetheryte and wait there?
-EnableChangeInstance                = true          --should it Change Instance when there is no Fate (only works on DT fates)
-    WaitIfBonusBuff                 = true          --Don't change instances if you have the Twist of Fate bonus buff
+MinWait                             = 3             --在准备前往下一个FATE前最少等待的秒数。
+MaxWait                             = 10            --在准备前往下一个FATE前最多等待的秒数。
+                                                        --实际等待时间将是MinWait和MaxWait之间的随机生成数字。
+DownTimeWaitAtNearestAetheryte      = false         --等待FATE出现时，是否飞到最近的以太之光并在那里等待？
+EnableChangeInstance                = true          --在没有FATE时是否换线（仅适用于DT FATE）
+    WaitIfBonusBuff                 = true          --如果你有双倍buff，设置为true则不换线
     NumberOfInstances               = 2
-ShouldExchangeBicolorGemstones      = true          --Should it exchange Bicolor Gemstone Vouchers?
-    ItemToPurchase                  = "Turali Bicolor Gemstone Voucher"        -- Old Sharlayan for "Bicolor Gemstone Voucher" and Solution Nine for "Turali Bicolor Gemstone Voucher"
-SelfRepair                          = false         --if false, will go to Limsa mender
-    RepairAmount                    = 20            --the amount it needs to drop before Repairing (set it to 0 if you don't want it to repair)
-    ShouldAutoBuyDarkMatter         = true          --Automatically buys a 99 stack of Grade 8 Dark Matter from the Limsa gil vendor if you're out
-ShouldExtractMateria                = true          --should it Extract Materia
-Retainers                           = true          --should it do Retainers
-ShouldGrandCompanyTurnIn            = false         --should it do Turn ins at the GC (requires Deliveroo)
-    InventorySlotsLeft              = 5             --how much inventory space before turning in
+ShouldExchangeBicolorGemstones      = true          --是否兑换双色宝石兑换券？
+    ItemToPurchase                  = "双色宝石的收据"        -- 旧萨雷安使用 "双色宝石兑换券"，九号解决方案使用"图拉尔双色宝石兑换券"
+SelfRepair                          = false         --如果为false，将前往利姆萨罗敏萨修理
+    RepairAmount                    = 20            --需要掉到多少耐久度才修理（如果你不想修理设为0）
+    ShouldAutoBuyDarkMatter         = true          --当8级暗物质用完时，自动从利姆萨罗敏萨购买99个
+ShouldExtractMateria                = true          --是否精制魔晶石
+Retainers                           = false          --是否处理雇员 (需要AutoRetainer)
+ShouldGrandCompanyTurnIn            = false         --是否交军票 (需要 Deliveroo)
+    InventorySlotsLeft              = 5             --在交军票前背包还有多少空余的格子
 
 Echo                                = "All"         --Options: All/Gems/None
+                                                    --All:显示全部选项
+                                                    --Gems:仅显示有多少双色
+                                                    --None:不给看
 
-CompanionScriptMode                 = false         --Set to true if you are using the fate script with a companion script (such as the Atma Farmer)
+CompanionScriptMode                 = false         --如果你将FATE脚本与其它脚本一起使用（如Atma Farmer），设为true
 
 --#endregion Settings
 
 --[[
 ********************************************************************************
-*           Code: Don't touch this unless you know what you're doing           *
+*                   代码: 除非你知道自己在做什么，否则不要修改                    *
 ********************************************************************************
 ]]
 
 --#region Plugin Checks and Setting Init
 
 if not HasPlugin("vnavmesh") then
-    yield("/echo [FATE] Please install vnavmesh")
+    yield("/echo [FATE] 装 vnavmesh 啊，不装怎么自动寻路？")
 end
 
 if not HasPlugin("BossMod") and not HasPlugin("BossModReborn") then
-    yield("/echo [FATE] Please install an AI dodging plugin, either Veyn's BossMod or BossMod Reborn")
+    yield("/echo [FATE] 搞个AI自动躲避插件喂, Veyn's BossMod 或者 BossMod Reborn选一个咯，逆光佬的那个移除自动循环的也能用的")
 end
 
 if not HasPlugin("TextAdvance") then
-    yield("/echo [FATE] Please install TextAdvance")
+    yield("/echo [FATE] 装 TextAdvance 啊")
 end
 
 if EnableChangeInstance == true  then
     if HasPlugin("Lifestream") == false then
-        yield("/echo [FATE] Please install Lifestream or Disable ChangeInstance in the settings")
+        yield("/echo [FATE] 要么装 Lifestream ，要么自己把换线功能关了")
     end
 end
 if Retainers then
     if not HasPlugin("AutoRetainer") then
-        yield("/echo [FATE] Please install AutoRetainer")
+        yield("/echo [FATE] 装 AutoRetainer，或者把雇员功能关了")
     end
 end
 if ShouldGrandCompanyTurnIn then
     if not HasPlugin("Deliveroo") then
         ShouldGrandCompanyTurnIn = false
-        yield("/echo [FATE] Please install Deliveroo")
+        yield("/echo [FATE] 装 Deliveroo，或者把军票功能关了")
     end
 end
 if ShouldExtractMateria then
     if HasPlugin("YesAlready") == false then
-        yield("/echo [FATE] Please install YesAlready")
+        yield("/echo [FATE] 装 YesAlready")
     end
 end
 if DodgingPlugin == "None" then
@@ -186,7 +184,7 @@ function setSNDProperty(propertyName, value)
     local currentValue = GetSNDProperty(propertyName)
     if currentValue ~= value then
         SetSNDProperty(propertyName, tostring(value))
-        LogInfo("[SetSNDProperty] " .. propertyName .. " set to " .. tostring(value))
+        LogInfo("[设置SND属性] " .. propertyName .. " 设置为 " .. tostring(value))
     end
 end
 
@@ -226,128 +224,128 @@ CharacterCondition = {
 
 ClassList =
 {
-    gla = { classId=1, className="Gladiator", isMelee=true, isTank=true },
-    pgl = { classId=2, className="Pugilist", isMelee=true, isTank=false },
-    mrd = { classId=3, className="Marauder", isMelee=true, isTank=true },
-    lnc = { classId=4, className="Lancer", isMelee=true, isTank=false },
-    arc = { classId=5, className="Archer", isMelee=false, isTank=false },
-    cnj = { classId=6, className="Conjurer", isMelee=false, isTank=false },
-    thm = { classId=7, className="Thaumaturge", isMelee=false, isTank=false },
-    pld = { classId=19, className="Paladin", isMelee=true, isTank=true },
-    mnk = { classId=20, className="Monk", isMelee=true, isTank=false },
-    war = { classId=21, className="Warrior", isMelee=true, isTank=true },
-    drg = { classId=22, className="Dragoon", isMelee=true, isTank=false },
-    brd = { classId=23, className="Bard", isMelee=false, isTank=false },
-    whm = { classId=24, className="White Mage", isMelee=false, isTank=false },
-    blm = { classId=25, className="Black Mage", isMelee=false, isTank=false },
-    acn = { classId=26, className="Arcanist", isMelee=false, isTank=false },
-    smn = { classId=27, className="Summoner", isMelee=false, isTank=false },
-    sch = { classId=28, className="Scholar", isMelee=false, isTank=false },
-    rog = { classId=29, className="Rogue", isMelee=false, isTank=false },
-    nin = { classId=30, className="Ninja", isMelee=true, isTank=false },
-    mch = { classId=31, className="Machinist", isMelee=false, isTank=false},
-    drk = { classId=32, className="Dark Knight", isMelee=true, isTank=true },
-    ast = { classId=33, className="Astrologian", isMelee=false, isTank=false },
-    sam = { classId=34, className="Samurai", isMelee=true, isTank=false },
-    rdm = { classId=35, className="Red Mage", isMelee=false, isTank=false },
-    blu = { classId=36, className="Blue Mage", isMelee=false, isTank=false },
-    gnb = { classId=37, className="Gunbreaker", isMelee=true, isTank=true },
-    dnc = { classId=38, className="Dancer", isMelee=false, isTank=false },
-    rpr = { classId=39, className="Reaper", isMelee=true, isTank=false },
-    sge = { classId=40, className="Sage", isMelee=false, isTank=false },
-    vpr = { classId=41, className="Viper", isMelee=true, isTank=false },
-    pct = { classId=42, className="Pictomancer", isMelee=false, isTank=false }
+    gla = { classId=1, className="剑术师", isMelee=true, isTank=true },
+    pgl = { classId=2, className="格斗家", isMelee=true, isTank=false },
+    mrd = { classId=3, className="斧术师", isMelee=true, isTank=true },
+    lnc = { classId=4, className="枪术师", isMelee=true, isTank=false },
+    arc = { classId=5, className="弓箭手", isMelee=false, isTank=false },
+    cnj = { classId=6, className="幻术师", isMelee=false, isTank=false },
+    thm = { classId=7, className="咒术师", isMelee=false, isTank=false },
+    pld = { classId=19, className="骑士", isMelee=true, isTank=true },
+    mnk = { classId=20, className="武僧", isMelee=true, isTank=false },
+    war = { classId=21, className="战士", isMelee=true, isTank=true },
+    drg = { classId=22, className="龙骑士", isMelee=true, isTank=false },
+    brd = { classId=23, className="吟游诗人", isMelee=false, isTank=false },
+    whm = { classId=24, className="白魔法师", isMelee=false, isTank=false },
+    blm = { classId=25, className="黑魔法师", isMelee=false, isTank=false },
+    acn = { classId=26, className="秘术师", isMelee=false, isTank=false },
+    smn = { classId=27, className="召唤师", isMelee=false, isTank=false },
+    sch = { classId=28, className="学者", isMelee=false, isTank=false },
+    rog = { classId=29, className="双剑师", isMelee=false, isTank=false },
+    nin = { classId=30, className="忍者", isMelee=true, isTank=false },
+    mch = { classId=31, className="机工士", isMelee=false, isTank=false},
+    drk = { classId=32, className="暗黑骑士", isMelee=true, isTank=true },
+    ast = { classId=33, className="占星术士", isMelee=false, isTank=false },
+    sam = { classId=34, className="武士", isMelee=true, isTank=false },
+    rdm = { classId=35, className="赤魔法师", isMelee=false, isTank=false },
+    blu = { classId=36, className="青魔法师", isMelee=false, isTank=false },
+    gnb = { classId=37, className="绝枪战士", isMelee=true, isTank=true },
+    dnc = { classId=38, className="舞者", isMelee=false, isTank=false },
+    rpr = { classId=39, className="钐镰客", isMelee=true, isTank=false },
+    sge = { classId=40, className="贤者", isMelee=false, isTank=false },
+    vpr = { classId=41, className="蝰蛇剑士", isMelee=true, isTank=false },
+    pct = { classId=42, className="绘灵法师", isMelee=false, isTank=false }
 }
 
 BicolorExchangeData =
 {
     {
-        shopKeepName = "Gadfrid",
-        zoneName = "Old Sharlayan",
+        shopKeepName = "广域交易商 加德弗里德",
+        zoneName = "旧萨雷安",
         zoneId = 962,
-        aetheryteName = "Old Sharlayan",
+        aetheryteName = "旧萨雷安",
         x=78, y=5, z=-37,
         shopItems =
         {
-            { itemName = "Bicolor Gemstone Voucher", itemIndex = 8, price = 100 }
+            { itemName = "双色宝石的收据", itemIndex = 8, price = 100 }
         }
     },
     {
-        shopKeepName = "Beryl",
-        zoneName = "Solution Nine",
+        shopKeepName = "广域交易商 贝瑞尔",
+        zoneName = "九号解决方案",
         zoneId = 1186,
-        aetheryteName = "Solution Nine",
+        aetheryteName = "九号解决方案",
         x=-198.47, y=0.92, z=-6.95,
         miniAethernet = {
-            name = "Nexus Arcade",
+            name = "联合商城",
             x=-157.74, y=0.29, z=17.43
         },
         shopItems =
         {
-            { itemName = "Turali Bicolor Gemstone Voucher", itemIndex = 6, price = 100 },
-            { itemName = "Rroneek Chuck", itemIndex = 9, price = 3 }
+            { itemName = "图拉尔双色宝石的收据", itemIndex = 6, price = 100 },
+            { itemName = "犎牛肩肉", itemIndex = 9, price = 3 }
         }
     }
 }
 
 FatesData = {
     {
-        zoneName = "Middle La Noscea",
+        zoneName = "中拉诺西亚",
         zoneId = 134,
         fatesList = {
             collectionsFates= {},
             otherNpcFates= {
-                { fateName="Thwack-a-Mole" , npcName="Troubled Tiller" },
-                { fateName="Yellow-bellied Greenbacks", npcName="Yellowjacket Drill Sergeant"},
-                { fateName="The Orange Boxes", npcName="Farmer in Need" }
+                { fateName="无穷无尽的打地鼠" , npcName="一筹莫展的农夫"},
+                { fateName="实战巡礼", npcName="黄衫队训练教官"},
+                { fateName="鼠害的小聪明", npcName="求助的农夫" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Lower La Noscea",
+        zoneName = "拉诺西亚低地",
         zoneId = 135,
         fatesList = {
             collectionsFates= {},
             otherNpcFates= {
-                { fateName="Away in a Bilge Hold" , npcName="Yellowjacket Veteran" },
-                { fateName="Fight the Flower", npcName="Furious Farmer" }
+                { fateName="麻烦人生——偷渡者阿科特修提姆" , npcName="熟练的警备兵" },
+                { fateName="花丛噩梦", npcName="愤怒的农夫" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Central Thanalan",
+        zoneName = "中萨纳兰",
         zoneId = 141,
         fatesList = {
             collectionsFates= {
-                { fateName="Let them Eat Cactus", npcName="Hungry Hobbledehoy"},
+                { fateName="营养丰富的仙人掌", npcName="饥饿的少女"},
             },
             otherNpcFates= {
-                { fateName="A Few Arrows Short of a Quiver" , npcName="Crestfallen Merchant" },
-                { fateName="Wrecked Rats", npcName="Coffer & Coffin Heavy" },
-                { fateName="Something to Prove", npcName="Cowardly Challenger" }
+                { fateName="屈伊伯龙家的人" , npcName="无计可施的商人" },
+                { fateName="深不见底——酒豪谷谷卢恩", npcName="金库灵柩亭的保镖" },
+                { fateName="粗野的赌徒——无赖格里希尔德", npcName="失败的冒险者" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Eastern Thanalan",
+        zoneName = "东萨纳兰",
         zoneId = 145,
         fatesList = {
             collectionsFates= {},
             otherNpcFates= {
-                { fateName="Attack on Highbridge: Denouement" , npcName="Brass Blade" }
+                { fateName="跨天桥上的死斗 市民营救战" , npcName="铜刃团卫兵" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Southern Thanalan",
+        zoneName = "南萨纳兰",
         zoneId = 146,
         fatesList = {
             collectionsFates= {},
@@ -358,7 +356,7 @@ FatesData = {
         flying = false
     },
     {
-        zoneName = "Outer La Noscea",
+        zoneName = "拉诺西亚外地",
         zoneId = 180,
         fatesList = {
             collectionsFates= {},
@@ -369,20 +367,20 @@ FatesData = {
         flying = false
     },
     {
-        zoneName = "Coerthas Central Highlands",
+        zoneName = "库尔札斯中央高地",
         zoneId = 155,
         fatesList= {
             collectionsFates= {},
             otherNpcFates= {},
             fatesWithContinuations = {},
             specialFates = {
-                "He Taketh It with His Eyes" --behemoth
+                "受伤的魔兽——贝希摩斯"
             },
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Coerthas Western Highlands",
+        zoneName = "库尔札斯西部高地",
         zoneId = 397,
         fatesList= {
             collectionsFates= {},
@@ -392,7 +390,7 @@ FatesData = {
         }
     },
     {
-        zoneName = "Mor Dhona",
+        zoneName = "摩杜纳",
         zoneId = 156,
         fatesList= {
             collectionsFates= {},
@@ -402,7 +400,7 @@ FatesData = {
         }
     },
     {
-        zoneName = "The Sea of Clouds",
+        zoneName = "阿巴拉提亚云海",
         zoneId = 401,
         fatesList= {
             collectionsFates= {},
@@ -412,7 +410,7 @@ FatesData = {
         }
     },
     {
-        zoneName = "Azys Lla",
+        zoneName = "魔大陆阿济兹拉",
         zoneId = 402,
         fatesList= {
             collectionsFates= {},
@@ -422,20 +420,20 @@ FatesData = {
         }
     },
     {
-        zoneName = "The Dravanian Forelands",
+        zoneName = "龙堡参天高地",
         zoneId = 398,
         fatesList= {
             collectionsFates= {},
             otherNpcFates= {},
             fatesWithContinuations = {},
             specialFates = {
-                "Coeurls Chase Boys Chase Coeurls" --coeurlregina
+                "幻影女王——长须豹女王" 
             },
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "The Dravanian Hinterlands",
+        zoneName = "龙堡内陆低地",
         zoneId=399,
         tpZoneId = 478,
         fatesList= {
@@ -446,7 +444,7 @@ FatesData = {
         }
     },
     {
-        zoneName = "The Churning Mists",
+        zoneName = "翻云雾海",
         zoneId=400,
         fatesList= {
             collectionsFates= {},
@@ -456,214 +454,214 @@ FatesData = {
         }
     },
     {
-        zoneName = "The Fringes",
+        zoneName = "基拉巴尼亚边区",
         zoneId = 612,
         fatesList= {
             collectionsFates= {
-                { fateName="Showing The Recruits What For", npcName="Storm Commander Bharbennsyn" },
-                { fateName="Get Sharp", npcName="M Tribe Youth" },
+                { fateName="集中训练营 士兵之章", npcName="弗雷拉克·巴尔本辛协漩校" },
+                { fateName="新石器时代", npcName="梅氏的少女" },
             },
             otherNpcFates= {
-                { fateName="The Mail Must Get Through", npcName="Storm Herald" },
-                { fateName="The Antlion's Share", npcName="M Tribe Ranger" },
-                { fateName="Double Dhara", npcName="Resistence Fighter" },
-                { fateName="Keeping the Peace", npcName="Resistence Fighter" }
+                { fateName="冥河世界", npcName="黑涡团传令员" },
+                { fateName="蚁狮没有攻击性", npcName="梅氏的猎人" },
+                { fateName="下个岩石继续", npcName="阿拉米格解放军战士" },
+                { fateName="边境巡视员", npcName="阿拉米格解放军战士" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "The Peaks",
+        zoneName = "基拉巴尼亚山区",
         zoneId = 620,
         fatesList= {
             collectionsFates= {
-                { fateName="Fletching Returns", npcName="Sorry Sutler" }
+                { fateName="狮鹫物语", npcName="流浪的酒保商人" }
             },
             otherNpcFates= {
-                { fateName="Resist, Die, Repeat", npcName="Wounded Fighter" },
-                { fateName="And the Bandits Played On", npcName="Frightened Villager" },
-                { fateName="Forget-me-not", npcName="Coldhearth Resident" },
-                { fateName="Of Mice and Men", npcName="Furious Farmer" }
+                { fateName="勇敢的蚱蜢", npcName="受伤的战士" },
+                { fateName="生死关头", npcName="F阿拉加纳的居民" },
+                { fateName="等好久了！", npcName="寒炉村居民" },
+                { fateName="血的收获", npcName="倔强的农夫" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {
-                "The Magitek Is Back", --escort
-                "A New Leaf" --escort
+                "失控的最终兵器——致命武器", 
+                "素食主义者" 
             }
         }
     },
     {
-        zoneName = "The Lochs",
+        zoneName = "基拉巴尼亚湖区",
         zoneId = 621,
         fatesList= {
             collectionsFates= {},
             otherNpcFates= {},
             fatesWithContinuations = {},
             specialFates = {
-                "A Horse Outside" --ixion
+                "传说中的雷马——伊克西翁" 
             },
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "The Ruby Sea",
+        zoneName = "红玉海",
         zoneId = 613,
         fatesList= {
             collectionsFates= {
-                { fateName="Treasure Island", npcName="Blue Avenger" },
-                { fateName="The Coral High Ground", npcName="Busy Beachcomber" }
+                { fateName="红甲族千两首", npcName="被打劫的碧甲族" },
+                { fateName="红色珊瑚礁", npcName="稳重的海盗" }
             },
             otherNpcFates= {
-                { fateName="Another One Bites The Dust", npcName="Pirate Youth" },
-                { fateName="Ray Band", npcName="Wounded Confederate" },
-                { fateName="Bilge-hold Jin", npcName="Green Confederate" }
+                { fateName="兵法修行者——一刀客千万", npcName="海贼众的少女" },
+                { fateName="红甲族恣意的风筝", npcName="负伤的海盗" },
+                { fateName="无礼的牛鬼——尘轮鬼", npcName="十分困扰的海盗" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Yanxia",
+        zoneName = "延夏",
         zoneId = 614,
         fatesList= {
             collectionsFates= {
-                { fateName="Rice and Shine", npcName="Flabbergasted Farmwife" },
-                { fateName="More to Offer", npcName="Ginko" }
+                { fateName="稻生物怪录", npcName="束手无策的农妇" },
+                { fateName="银狐的心愿", npcName="银狐" }
             },
             otherNpcFates= {
-                { fateName="Freedom Flies", npcName="Kinko" },
-                { fateName="A Tisket, a Tasket", npcName="Gyogun of the Most Bountiful Catch" }
+                { fateName="金狐的心愿", npcName="金狐" },
+                { fateName="倒霉的鱼群", npcName="大鱼丰收 鱼群" }
             },
             specialFates = {
-                "Foxy Lady" --foxyyy
+                "九尾妖狐——玉藻御前" --foxyyy
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "The Azim Steppe",
+        zoneName = "太阳神草原",
         zoneId = 622,
         fatesList= {
             collectionsFates= {
-                { fateName="The Dataqi Chronicles: Duty", npcName="Altani" }
+                { fateName="答塔克的旅程之挤羊奶", npcName="阿儿塔尼" }
             },
             otherNpcFates= {
-                { fateName="Rock for Food", npcName="Oroniri Youth" },
-                { fateName="Killing Dzo", npcName="Olkund Dzotamer" },
-                { fateName="They Shall Not Want", npcName="Mol Shepherd" },
-                { fateName="A Good Day to Die", npcName="Qestiri Merchant" }
+                { fateName="忏悔", npcName="奥罗尼部年轻人" },
+                { fateName="归家路上的放牛少女", npcName="奥儿昆德部牛倌" },
+                { fateName="转瞬的噩梦", npcName="模儿部羊倌" },
+                { fateName="沉默的制裁", npcName="凯苏提尔部商人" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Lakeland",
+        zoneName = "雷克兰德",
         zoneId = 813,
         fatesList= {
             collectionsFates= {
-                { fateName="Pick-up Sticks", npcName="Crystarium Botanist" }
+                { fateName="樵夫之歌", npcName="雷克兰德的樵夫" }
             },
             otherNpcFates= {
-                { fateName="Subtle Nightshade", npcName="Artless Dodger" },
-                { fateName="Economic Peril", npcName="Jobb Guard" }
+                { fateName="与紫叶团的战斗之卑鄙陷阱", npcName="像是旅行商人的男子	" },
+                { fateName="污秽之血", npcName="乔布要塞的卫兵" }
             },
             fatesWithContinuations = {
-                "Behind Anemone Lines"
+                "高度进化"
             },
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Kholusia",
+        zoneName = "珂露西亚岛",
         zoneId = 814,
         fatesList= {
             collectionsFates= {
-                { fateName="Ironbeard Builders - Rebuilt", npcName="Tholl Engineer" }
+                { fateName="制作战士之自走人偶", npcName="图尔家族的技师" }
             },
             otherNpcFates= {},
             fatesWithContinuations = {},
             specialFates = {
-                "A Finale Most Formidable" --formidable
+                "激斗畏惧装甲之秘密武器" --formidable
             },
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Amh Araeng",
+        zoneName = "安穆·艾兰",
         zoneId = 815,
         fatesList= {
             collectionsFates= {},
             otherNpcFates= {},
             fatesWithContinuations = {},
             blacklistedFates= {
-                "Tolba No. 1", -- pathing is really bad to enemies
+                "托尔巴龟最棒", -- pathing is really bad to enemies
             }
         }
     },
     {
-        zoneName = "Il Mheg",
+        zoneName = "伊尔美格",
         zoneId = 816,
         fatesList= {
             collectionsFates= {
-                { fateName="Twice Upon a Time", npcName="Nectar-seeking Pixie" }
+                { fateName="仙子尾巴之金黄花蜜", npcName="寻找花蜜的仙子" }
             },
             otherNpcFates= {
-                { fateName="Once Upon a Time", npcName="Nectar-seeking Pixie" },
+                { fateName="仙子尾巴之魔物包围网", npcName="寻找花蜜的仙子" },
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "The Rak'tika Greatwood",
+        zoneName = "拉凯提卡大森林",
         zoneId = 817,
         fatesList= {
             collectionsFates= {
-                { fateName="Picking up the Pieces", npcName="Night's Blessed Missionary" },
-                { fateName="Pluck of the Draw", npcName="Myalna Bowsing" },
-                { fateName="Monkeying Around", npcName="Fanow Warder" }
+                { fateName="粉红鹳", npcName="夜之民导师" },
+                { fateName="缅楠的巡逻之补充弓箭", npcName="散弓音 缅楠" },
+                { fateName="传说诞生", npcName="法诺的看守" }
             },
             otherNpcFates= {
-                { fateName="Queen of the Harpies", npcName="Fanow Huntress" },
-                { fateName="Shot Through the Hart", npcName="Qilmet Redspear" },
+                { fateName="死相陆鸟——刻莱诺", npcName="法诺的猎人" },
+                { fateName="吉梅与萨梅", npcName="血红枪 吉梅" },
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "The Tempest",
+        zoneName = "黑风海",
         zoneId = 818,
         fatesList= {
             collectionsFates= {
-                { fateName="Low Coral Fiber", npcName="Teushs Ooan" },
-                { fateName="Pearls Apart", npcName="Ondo Spearfisher" }
+                { fateName="灾厄的古塔尼亚之收集红血珊瑚", npcName="提乌嘶·澳恩" },
+                { fateName="珍珠永恒", npcName="鳍人族捕鱼人" }
             },
             otherNpcFates= {
-                { fateName="Where has the Dagon", npcName="Teushs Ooan" },
-                { fateName="Ondo of Blood", npcName="Teushs Ooan" },
-                { fateName="Lookin' Back on the Track", npcName="Teushs Ooan" },
+                { fateName="灾厄的古塔尼亚之开始追踪", npcName="提乌嘶·澳恩" },
+                { fateName="灾厄的古塔尼亚之兹姆嘶登场", npcName="提乌嘶·澳恩" },
+                { fateName="灾厄的古塔尼亚之保护提乌嘶", npcName="提乌嘶·澳恩" },
             },
             fatesWithContinuations = {},
             specialFates = {
-                "The Head, the Tail, the Whole Damned Thing" --archaeotania
+                "灾厄的古塔尼亚之深海讨伐战" --archaeotania
             },
             blacklistedFates= {
-                "Coral Support", -- escort fate
-                "The Seashells He Sells", -- escort fate
+                "灾厄的古塔尼亚之护卫提乌嘶", -- escort fate
+                "贝汁物语", -- escort fate
             }
         }
     },
     {
-        zoneName = "Labyrinthos",
+        zoneName = "迷津",
         zoneId = 956,
         fatesList= {
             collectionsFates= {
-                { fateName="Sheaves on the Wind", npcName="Vexed Researcher" },
-                { fateName="Moisture Farming", npcName="Well-moisturized Researcher" }
+                { fateName="迷津风玫瑰", npcName="束手无策的研究员" },
+                { fateName="纯天然保湿护肤品", npcName="皮肤很好的研究员" }
             },
             otherNpcFates= {},
             fatesWithContinuations = {},
@@ -671,227 +669,227 @@ FatesData = {
         }
     },
     {
-        zoneName = "Thavnair",
+        zoneName = "萨维奈岛",
         zoneId = 957,
         fatesList= {
             collectionsFates= {
-                { fateName="Full Petal Alchemist: Perilous Pickings", npcName="Sajabaht" }
+                { fateName="芳香的炼金术士：危险的芬芳", npcName="调香师 萨加巴缇" }
             },
             otherNpcFates= {},
             specialFates = {
-                "Devout Pilgrims vs. Daivadipa" --daveeeeee
+                "兽道诸神信仰：伪神降临" --daveeeeee
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Garlemald",
+        zoneName = "加雷马",
         zoneId = 958,
         fatesList= {
             collectionsFates= {
-                { fateName="Parts Unknown", npcName="Displaced Engineer" }
+                { fateName="资源回收分秒必争", npcName="沦为难民的魔导技师" }
             },
             otherNpcFates= {
-                { fateName="Artificial Malevolence: 15 Minutes to Comply", npcName="Keltlona" },
-                { fateName="Artificial Malevolence: The Drone Army", npcName="Ebrelnaux" },
-                { fateName="Artificial Malevolence: Unmanned Aerial Villains", npcName="Keltlona" },
-                { fateName="Amazing Crates", npcName="Hardy Refugee" }
+                { fateName="魔导技师的归乡之旅：启程", npcName="柯尔特隆纳协漩尉" },
+                { fateName="魔导技师的归乡之旅：落入陷阱", npcName="埃布雷尔诺" },
+                { fateName="魔导技师的归乡之旅：实弹射击", npcName="柯尔特隆纳协漩尉" },
+                { fateName="雪原的巨魔", npcName="幸存的难民" }
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Mare Lamentorum",
+        zoneName = "叹息海",
         zoneId = 959,
         fatesList= {
             collectionsFates= {
-                { fateName="What a Thrill", npcName="Thrillingway" }
+                { fateName="如何追求兔生刺激", npcName="担惊威" }
             },
             otherNpcFates= {
-                { fateName="Lepus Lamentorum: Dynamite Disaster", npcName="Warringway" },
-                { fateName="Lepus Lamentorum: Cleaner Catastrophe", npcName="Fallingway" },
+                { fateName="叹息的白兔之轰隆隆大爆炸", npcName="战兵威" },
+                { fateName="叹息的白兔之乱糟糟大失控", npcName="落名威" },
             },
             fatesWithContinuations = {},
             blacklistedFates= {
-                "Hunger Strikes", --really bad line of sight with rocks, get stuck not doing anything quite often
+                "跨海而来的老饕", --岩石的视线非常差，经常被困住而无法做任何事情
             }
         }
     },
     {
-        zoneName = "Ultima Thule",
+        zoneName = "天外天垓",
         zoneId = 960,
         fatesList= {
             collectionsFates= {
-                { fateName="Omicron Recall: Comms Expansion", npcName="N-6205" }
+                { fateName="侵略兵器召回指令：扩建通信设备", npcName="N-6205" }
             },
             otherNpcFates= {
-                { fateName="Wings of Glory", npcName="Ahl Ein's Kin" },
-                { fateName="Omicron Recall: Secure Connection", npcName="N-6205"},
-                { fateName="Only Just Begun", npcName="Myhk Nehr" }
+                { fateName="荣光之翼——阿尔·艾因", npcName="阿尔·艾因的朋友" },
+                { fateName="侵略兵器召回指令：保护N-6205", npcName="N-6205"},
+                { fateName="走向永恒的结局", npcName="米克·涅尔" }
             },
             specialFates = {
-                "Omicron Recall: Killing Order" --chi
+                "侵略兵器召回指令：破坏侵略兵器希" --chi
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Elpis",
+        zoneName = "厄尔庇斯",
         zoneId = 961,
         fatesList= {
             collectionsFates= {
-                { fateName="So Sorry, Sokles", npcName="Flora Overseer" }
+                { fateName="望请索克勒斯先生谅解", npcName="负责植物的观察者" }
             },
             otherNpcFates= {
-                { fateName="Grand Designs: Unknown Execution", npcName="Meletos the Inscrutable" },
-                { fateName="Grand Designs: Aigokeros", npcName="Meletos the Inscrutable" },
-                { fateName="Nature's Staunch Protector", npcName="Monoceros Monitor" },
+                { fateName="创造计划：过于新颖的理念", npcName="神秘莫测 莫勒图斯" },
+                { fateName="创造计划：角山羊", npcName="神秘莫测 莫勒图斯" },
+                { fateName="告死鸟", npcName="一角兽的观察者" },
             },
             fatesWithContinuations = {},
             blacklistedFates= {}
         }
     },
     {
-        zoneName = "Urqopacha",
+        zoneName = "奥阔帕恰山",
         zoneId = 1187,
         fatesList= {
             collectionsFates= {},
             otherNpcFates= {
-                { fateName="Pasture Expiration Date", npcName="Tsivli Stoutstrider" },
-                { fateName="Gust Stop Already", npcName="Mourning Yok Huy" },
-                { fateName="Lay Off the Horns", npcName="Yok Huy Vigilkeeper" },
-                { fateName="Birds Up", npcName="Coffee Farmer" },
-                { fateName="Salty Showdown", npcName="Chirwagur Sabreur" },
-                { fateName="Fire Suppression", npcName="Tsivli Stoutstrider"} ,
-                { fateName="Panaq Attack", npcName="Pelupelu Peddler" }
+                { fateName="牧场关门", npcName="健步如飞 基维利" },
+                { fateName="不死之人", npcName="扫墓的尤卡巨人" },
+                { fateName="失落的山顶都城", npcName="守护遗迹的尤卡巨人" },
+                { fateName="咖啡豆岌岌可危", npcName="咖啡农园的工作人员" },
+                { fateName="千年孤独", npcName="其瓦固佩刀者" },
+                { fateName="跃动的火热——山火", npcName="健步如飞 基维利"} ,
+                { fateName="飞天魔厨——佩鲁的天敌", npcName="佩鲁佩鲁族旅行商人" }
             },
             fatesWithContinuations = {
-                { fateName="Salty Showdown", continuationIsBoss=true }
+                { fateName="千年孤独", continuationIsBoss=true }
             },
             blacklistedFates= {
-                "Young Volcanoes",
-                "Wolf Parade", -- multiple Pelupelu Peddler npcs, rng whether it tries to talk to the right one
-                "Panaq Attack" -- multiple Pelupleu Peddler npcs
+                "只有爆炸",
+                "狼之家族", -- multiple Pelupelu Peddler npcs, rng whether it tries to talk to the right one
+                "飞天魔厨——佩鲁的天敌" -- multiple Pelupleu Peddler npcs
             }
         }
     },
     {
-        zoneName="Kozama'uka",
+        zoneName="克扎玛乌卡湿地",
         zoneId=1188,
         fatesList={
             collectionsFates={
-                { fateName="Borne on the Backs of Burrowers", npcName="Moblin Forager" },
-                { fateName="Combing the Area", npcName="Hanuhanu Combmaker" },
+                { fateName="密林淘金", npcName="莫布林族采集者" },
+                { fateName="巧若天工", npcName="哈努族手艺人" },
                 
             },
             otherNpcFates= {
-                { fateName="There's Always a Bigger Beast", npcName="Hanuhanu Angler" },
-                { fateName="Toucalibri at That Game", npcName="Hanuhanu Windscryer" },
-                { fateName="Putting the Fun in Fungicide", npcName="Bagnobrok Craftythoughts" },
-                { fateName="Reeds in Need", npcName="Hanuhanu Farmer" },
-                { fateName="Tax Dodging", npcName="Pelupelu Peddler" },
+                { fateName="怪力大肚王——非凡飔戮龙", npcName="哈努族捕鱼人" },
+                { fateName="贡品小偷", npcName="哈努族巫女" },
+                { fateName="美丽菇世界", npcName="贴心巧匠 巴诺布罗坷" },
+                { fateName="芦苇荡的时光", npcName="哈努族农夫" },
+                { fateName="横征暴敛？", npcName="佩鲁佩鲁族旅行商人" },
 
             },
             fatesWithContinuations = {},
             blacklistedFates= {
-                "Mole Patrol",
-                "Tax Dodging" -- multiple Pelupelu Peddlers
+                "打鼹鼠行动",
+                "横征暴敛？" -- multiple Pelupelu Peddlers
             }
         }
     },
     {
-        zoneName="Yak T'el",
+        zoneName="亚克特尔树海",
         zoneId=1189,
         fatesList= {
             collectionsFates= {
-                { fateName="Escape Shroom", npcName="Hoobigo Forager" }
+                { fateName="逃离恐怖菇", npcName="霍比格族采集者" }
             },
             otherNpcFates= {
                 --{ fateName=, npcName="Xbr'aal Hunter" }, 2 npcs names same thing....
-                { fateName="La Selva se lo Llevó", npcName="Xbr'aal Hunter" },
-                { fateName="Stabbing Gutward", npcName="Doppro Spearbrother" },
-                { fateName="Porting is Such Sweet Sorrow", npcName="Hoobigo Porter" }
+                { fateName="血染利爪——米尤鲁尔", npcName="灵豹之民猎人" },
+                { fateName="辉鳞族不法之徒袭击事件", npcName="朵普罗族枪手" },
+                { fateName="守护秘药之战", npcName="霍比格族运货人" }
                 -- { fateName="Stick it to the Mantis", npcName="Xbr'aal Sentry" }, -- 2 npcs named same thing.....
             },
             fatesWithContinuations = {
-                "Stabbing Gutward"
+                "辉鳞族不法之徒袭击事件"
             },
             blacklistedFates= {
-                "The Departed"
+                "圣树邪魔——坏死花"
             }
         }
     },
     {
-        zoneName="Shaaloani",
+        zoneName="夏劳尼荒野",
         zoneId=1190,
         fatesList= {
             collectionsFates= {
-                { fateName="Gonna Have Me Some Fur", npcName="Tonawawtan Trapper" },
-                { fateName="The Serpentlord Sires", npcName="Br'uk Vaw of the Setting Sun" }
+                { fateName="剃毛时间", npcName="迎曦之民采集者" },
+                { fateName="蛇王得酷热涅：狩猎前的准备", npcName="夕阳尚红 布鲁克·瓦" }
             },
             otherNpcFates= {
-                { fateName="The Dead Never Die", npcName="Tonawawtan Worker" }, --22 boss
-                { fateName="Ain't What I Herd", npcName="Hhetsarro Herder" }, --23 normal
-                { fateName="Helms off to the Bull", npcName="Hhetsarro Herder" }, --22 boss
-                { fateName="A Raptor Runs Through It", npcName="Hhetsarro Angler" }, --24 tower defense
-                { fateName="The Serpentlord Suffers", npcName="Br'uk Vaw of the Setting Sun" },
-                { fateName="That's Me and the Porter", npcName="Pelupelu Peddler" },
+                { fateName="死而复生的恶棍——阴魂不散 扎特夸", npcName="迎曦之民劳动者" }, --22 boss
+                { fateName="和牛一起旅行", npcName="崇灵之民女性" }, --23 normal
+                { fateName="不甘的冲锋者——灰达奇", npcName="崇灵之民女性" }, --22 boss
+                { fateName="大湖之恋", npcName="崇灵之民渔夫" }, --24 tower defense
+                { fateName="蛇王得酷热涅：狩猎的杀手锏", npcName="夕阳尚红 布鲁克·瓦" },
+                { fateName="神秘翼龙荒野奇谈", npcName="佩鲁佩鲁族旅行商人" },
             },
             fatesWithContinuations = {},
             specialFates = {
-                "The Serpentlord Seethes" -- big snake fate
+                "蛇王得酷热涅：荒野的死斗" -- big snake fate
             },
             blacklistedFates= {}
         }
     },
     {
-        zoneName="Heritage Found",
+        zoneName="遗产之地",
         zoneId=1191,
         fatesList= {
             collectionsFates= {
-                { fateName="License to Dill", npcName="Tonawawtan Provider" },
-                { fateName="When It's So Salvage", npcName="Refined Reforger" }
+                { fateName="药师的工作", npcName="迎曦之民栽培者" },
+                { fateName="亮闪闪的可回收资源", npcName="英姿飒爽的再造者" }
             },
             otherNpcFates= {
-                { fateName="It's Super Defective", npcName="Novice Hunter" },
-                { fateName="Running of the Katobleps", npcName="Novice Hunter" },
-                { fateName="Ware the Wolves", npcName="Imperiled Hunter" },
-                { fateName="Domo Arigato", npcName="Perplexed Reforger" },
-                { fateName="Old Stampeding Grounds", npcName="Driftdowns Reforger" },
-                { fateName="Pulling the Wool", npcName="Panicked Courier" }
+                { fateName="机械迷城", npcName="初出茅庐的狩猎者" },
+                { fateName="你来我往", npcName="初出茅庐的狩猎者" },
+                { fateName="剥皮行者", npcName="陷入危机的狩猎者" },
+                { fateName="机械公敌", npcName="走投无路的再造者" },
+                { fateName="铭刻于灵魂中的恐惧", npcName="终流地的再造者" },
+                { fateName="前路多茫然", npcName="害怕的运送者" }
             },
             fatesWithContinuations = {
-                { fateName="Domo Arigato", continuationIsBoss=false }
+                { fateName="机械公敌", continuationIsBoss=false }
             },
             blacklistedFates= {
-                "When It's So Salvage", -- terrain is terrible
+                "亮闪闪的可回收资源", -- terrain is terrible
                 "print('I hate snakes')"
             }
         }
     },
     {
-        zoneName="Living Memory",
+        zoneName="活着的记忆",
         zoneId=1192,
         fatesList= {
             collectionsFates= {
-                { fateName="Seeds of Tomorrow", npcName="Unlost Sentry GX" },
-                { fateName="Scattered Memories", npcName="Unlost Sentry GX" }
+                { fateName="良种难求", npcName="无失哨兵GX" },
+                { fateName="记忆的碎片", npcName="无失哨兵GX" }
             },
             otherNpcFates= {
-                { fateName="Canal Carnage", npcName="Unlost Sentry GX" },
-                { fateName="Mascot March", npcName="The Grand Marshal" }
+                { fateName="为了运河镇的安宁", npcName="无失哨兵GX" },
+                { fateName="亩鼠米卡：盛装巡游开始", npcName="滑稽巡游主宰" }
             },
             fatesWithContinuations =
             {
-                { fateName="Plumbers Don't Fear Slimes", continuationIsBoss=true },
-                { fateName="Mascot March", continuationIsBoss=true }
+                { fateName="水城噩梦", continuationIsBoss=true },
+                { fateName="亩鼠米卡：盛装巡游开始", continuationIsBoss=true }
             },
             specialFates =
             {
-                "Mascot Murder"
+                "亩鼠米卡：盛装巡游皆大欢喜"
             },
             blacklistedFates= {
             }
@@ -989,7 +987,7 @@ function SelectNextZone()
         end
     end
     if nextZone == nil then
-        yield("/echo [FATE] Current zone is only partially supported. No data on npc fates.")
+        yield("/echo [FATE] 当前区域仅部分支持. No data on npc fates.")
         nextZone = {
             zoneName = "",
             zoneId = nextZoneId,
@@ -1043,47 +1041,47 @@ function SelectNextFateHelper(tempFate, nextFate)
     end
 
     if tempFate.timeLeft < MinTimeLeftToIgnoreFate or tempFate.progress > CompletionToIgnoreFate then
-        LogInfo("[FATE] Ignoring fate #"..tempFate.fateId.." due to insufficient time or high completion.")
+        LogInfo("[FATE] 忽略FATE #"..tempFate.fateId.." 由于时间不足或完成度太高.")
         return nextFate
     elseif nextFate == nil then
-        LogInfo("[FATE] Selecting #"..tempFate.fateId.." because no other options so far.")
+        LogInfo("[FATE] 已选中 #"..tempFate.fateId.." 因为目前没有其他选择.")
         return tempFate
     elseif nextFate.timeLeft < MinTimeLeftToIgnoreFate or nextFate.progress > CompletionToIgnoreFate then
-        LogInfo("[FATE] Ignoring fate #"..nextFate.fateId.." due to insufficient time or high completion.")
+        LogInfo("[FATE] 忽略FATE #"..nextFate.fateId.." 由于时间不足或完成度太高.")
         return tempFate
     end
 
     -- Evaluate based on priority (Loop through list return first non-equal priority)
     for _, criteria in ipairs(FatePriority) do
         if criteria == "Progress" then
-            LogInfo("[FATE] Comparing progress: "..tempFate.progress.." vs "..nextFate.progress)
+            LogInfo("[FATE] 进度对比: "..tempFate.progress.." 与 "..nextFate.progress)
             if tempFate.progress > nextFate.progress then return tempFate end
             if tempFate.progress < nextFate.progress then return nextFate end
         elseif criteria == "Bonus" then
-            LogInfo("[FATE] Checking bonus status: "..tostring(tempFate.isBonusFate).." vs "..tostring(nextFate.isBonusFate))
+            LogInfo("[FATE] 检查双倍状态: "..tostring(tempFate.isBonusFate).." 与 "..tostring(nextFate.isBonusFate))
             if tempFate.isBonusFate and not nextFate.isBonusFate then return tempFate end
             if nextFate.isBonusFate and not tempFate.isBonusFate then return nextFate end
         elseif criteria == "TimeLeft" then
-            LogInfo("[FATE] Comparing time left: "..tempFate.timeLeft.." vs "..nextFate.timeLeft)
+            LogInfo("[FATE] 剩余时间对比: "..tempFate.timeLeft.." 与 "..nextFate.timeLeft)
             if tempFate.timeLeft > nextFate.timeLeft then return tempFate end
             if tempFate.timeLeft < nextFate.timeLeft then return nextFate end
         elseif criteria == "Distance" then
             local tempDist = GetDistanceToPoint(tempFate.x, tempFate.y, tempFate.z)
             local nextDist = GetDistanceToPoint(nextFate.x, nextFate.y, nextFate.z)
-            LogInfo("[FATE] Comparing distance: "..tempDist.." vs "..nextDist)
+            LogInfo("[FATE] 距离对比: "..tempDist.." 与 "..nextDist)
             if tempDist < nextDist then return tempFate end
             if tempDist > nextDist then return nextFate end
         elseif criteria == "DistanceTeleport" then
             local tempDist = GetDistanceToPointWithAetheryteTravel(tempFate.x, tempFate.y, tempFate.z)
             local nextDist = GetDistanceToPointWithAetheryteTravel(nextFate.x, nextFate.y, nextFate.z)
-            LogInfo("[FATE] Comparing distance: "..tempDist.." vs "..nextDist)
+            LogInfo("[FATE] 距离对比: "..tempDist.." 与 "..nextDist)
             if tempDist < nextDist then return tempFate end
             if tempDist > nextDist then return nextFate end
         end
     end
 
     -- Fallback: Select fate with the lower ID
-    LogInfo("[FATE] Selecting lower ID fate: "..tempFate.fateId.." vs "..nextFate.fateId)
+    LogInfo("[FATE] : 选择较低 ID 的FATE"..tempFate.fateId.." 与 "..nextFate.fateId)
     return (tempFate.fateId < nextFate.fateId) and tempFate or nextFate
 end
 
@@ -1172,7 +1170,7 @@ function SelectNextFate()
     if nextFate == nil then
         LogInfo("[FATE] No eligible fates found.")
         if Echo == "All" then
-            yield("/echo [FATE] No eligible fates found.")
+            yield("/echo [FATE] 未找到符合条件的FATE.")
         end
     else
         LogInfo("[FATE] Final selected fate #"..nextFate.fateId.." "..nextFate.fateName)
@@ -1457,7 +1455,7 @@ function FlyBackToAetheryte()
     local z = GetPlayerRawZPos()
     local closestAetheryte = GetClosestAetheryte(x, y, z, 0)
     -- if you get any sort of error while flying back, then just abort and tp back
-    if IsAddonVisible("_TextError") and GetNodeText("_TextError", 1) == "Your mount can fly no higher." then
+    if IsAddonVisible("_TextError") and GetNodeText("_TextError", 1) == "抵达高度上限，无法继续提升高度。" then
         yield("/vnav stop")
         TeleportTo(closestAetheryte.aetheryteName)
         return
@@ -1476,8 +1474,8 @@ function FlyBackToAetheryte()
             State = CharacterState.ready
             LogInfo("[FATE] State Change: Ready")
         else
-            if MountToUse == "mount roulette" then
-                yield('/gaction "mount roulette"')
+            if MountToUse == "随机坐骑" then
+                yield('/gaction "随机坐骑"')
             else
                 yield('/mount "' .. MountToUse)
             end
@@ -1505,8 +1503,8 @@ function Mount()
         State = CharacterState.moveToFate
         LogInfo("[FATE] State Change: MoveToFate")
     else
-        if MountToUse == "mount roulette" then
-            yield('/gaction "mount roulette"')
+        if MountToUse == "随机坐骑" then
+            yield('/gaction "随机坐骑"')
         else
             yield('/mount "' .. MountToUse)
         end
@@ -1516,7 +1514,7 @@ end
 
 function Dismount()
     if GetCharacterCondition(CharacterCondition.flying) then
-        yield('/ac dismount')
+        yield('/ac 跳下')
 
         local now = os.clock()
         if now - LastStuckCheckTime > 1 then
@@ -1540,7 +1538,7 @@ function Dismount()
             LastStuckCheckPosition = {x=x, y=y, z=z}
         end
     elseif GetCharacterCondition(CharacterCondition.mounted) then
-        yield('/ac dismount')
+        yield('/ac 跳下')
     end
 end
 
@@ -1696,7 +1694,7 @@ function MoveToFate()
         LogInfo("[FATE] Moving to fate #"..CurrentFate.fateId.." "..CurrentFate.fateName)
         MovingAnnouncementLock = true
         if Echo == "All" then
-            yield("/echo [FATE] Moving to fate #"..CurrentFate.fateId.." "..CurrentFate.fateName)
+            yield("/echo [FATE] 移动至FATE #"..CurrentFate.fateId.." "..CurrentFate.fateName)
         end
     end
 
@@ -1860,9 +1858,9 @@ function SummonChocobo()
 
     if ShouldSummonChocobo and GetBuddyTimeRemaining() <= ResummonChocoboTimeLeft then
         if GetItemCount(4868) > 0 then
-            yield("/item Gysahl Greens")
+            yield("/item 基萨尔野菜")
             yield("/wait 3")
-            yield('/cac "'..ChocoboStance..' stance"')
+            yield('/cac "'..ChocoboStance..'"')
         elseif ShouldAutoBuyGysahlGreens then
             State = CharacterState.autoBuyGysahlGreens
             LogInfo("[FATE] State Change: AutoBuyGysahlGreens")
@@ -1887,7 +1885,7 @@ function AutoBuyGysahlGreens()
     else
         if not IsInZone(129) then
             yield("/vnav stop")
-            TeleportTo("Limsa Lominsa Lower Decks")
+            TeleportTo("利姆萨·罗敏萨下层甲板")
             return
         else
             local gysahlGreensVendor = { x=-62.1, y=18.0, z=9.4, npcName="Bango Zango" }
@@ -2210,7 +2208,7 @@ function DoFate()
             if not ForlornMarked then
                 yield("/enemysign attack1")
                 if Echo == "All" then
-                    yield("/echo Found Forlorn! <se.3>")
+                    yield("/echo 已发现迷失者! <se.3>")
                 end
                 TurnOffAoes()
                 ForlornMarked = true
@@ -2406,9 +2404,9 @@ function Ready()
     if not GemAnnouncementLock and (Echo == "All" or Echo == "Gems") then
         GemAnnouncementLock = true
         if BicolorGemCount >= 1400 then
-            yield("/echo [FATE] You're almost capped with "..tostring(BicolorGemCount).."/1500 gems! <se.3>")
+            yield("/echo [FATE] 你的双色宝石即将抵达上限： "..tostring(BicolorGemCount).."/1500 <se.3>")
         else
-            yield("/echo [FATE] Gems: "..tostring(BicolorGemCount).."/1500")
+            yield("/echo [FATE] 双色宝石数量: "..tostring(BicolorGemCount).."/1500")
         end
     end
 end
@@ -2429,7 +2427,7 @@ function HandleDeath()
         if Echo and not DeathAnnouncementLock then
             DeathAnnouncementLock = true
             if Echo == "All" then
-                yield("/echo [FATE] You have died. Returning to home aetheryte.")
+                yield("/echo [FATE] 你菜死了. 将返回到你设置的返回点.")
             end
         end
 
@@ -2523,7 +2521,7 @@ function ProcessRetainers()
 
         if not IsInZone(129) then
             yield("/vnav stop")
-            TeleportTo("Limsa Lominsa Lower Decks")
+            TeleportTo("利姆萨·罗敏萨下层甲板")
             return
         end
 
@@ -2547,7 +2545,7 @@ function ProcessRetainers()
             if IsAddonVisible("RetainerList") then
                 yield("/ays e")
                 if Echo == "All" then
-                    yield("/echo [FATE] Processing retainers")
+                    yield("/echo [FATE] 处理雇员中")
                 end
                 yield("/wait 1")
             end
@@ -2637,9 +2635,9 @@ function Repair()
         elseif ShouldAutoBuyDarkMatter then
             if not IsInZone(129) then
                 if Echo == "All" then
-                    yield("/echo Out of Dark Matter! Purchasing more from Limsa Lominsa.")
+                    yield("/echo 在？暗物质用光了，我帮你去海都买点.")
                 end
-                TeleportTo("Limsa Lominsa Lower Decks")
+                TeleportTo("利姆萨·罗敏萨下层甲板")
                 return
             end
 
@@ -2666,14 +2664,14 @@ function Repair()
             end
         else
             if Echo == "All" then
-                yield("/echo Out of Dark Matter and ShouldAutoBuyDarkMatter is false. Switching to Limsa mender.")
+                yield("/echo 暗物质用完了你又不肯去设置里面打开自动购买暗物质，那我只能回海都帮你修了.")
             end
             SelfRepair = false
         end
     else
         if NeedsRepair(RepairAmount) then
             if not IsInZone(129) then
-                TeleportTo("Limsa Lominsa Lower Decks")
+                TeleportTo("利姆萨·罗敏萨下层甲板")
                 return
             end
             
@@ -2789,7 +2787,7 @@ SetMaxDistance()
 
 SelectedZone = SelectNextZone()
 if SelectedZone.zoneName ~= "" and Echo == "All" then
-    yield("/echo [FATE] Farming "..SelectedZone.zoneName)
+    yield("/echo [FATE] 正在打 "..SelectedZone.zoneName)
 end
 LogInfo("[FATE] Farming Start for "..SelectedZone.zoneName)
 
@@ -2808,7 +2806,7 @@ for _, shop in ipairs(BicolorExchangeData) do
     end
 end
 if SelectedBicolorExchangeData == nil then
-    yield("/echo [FATE] Cannot recognize bicolor shop item "..ItemToPurchase.."! Please make sure it's in the BicolorExchangeData table!")
+    yield("/echo [FATE] 无法识别双色商店商品 "..ItemToPurchase.."! 请确保它在 BicolorExchangeData 表中!")
     StopScript = true
 end
 
@@ -2819,12 +2817,12 @@ if IsInFate() and GetFateProgress(GetNearestFate()) < 100 then
 end
 
 if ShouldSummonChocobo and GetBuddyTimeRemaining() > 0 then
-    yield('/cac "'..ChocoboStance..' stance"')
+    yield('/cac "'..ChocoboStance..'"')
 end
 
 while not StopScript do
     if not NavIsReady() then
-        yield("/echo [FATE] Waiting for vnavmesh to build...")
+        yield("/echo [FATE] 新版本的vnavmesh每进一次地图都要重新构建导航，等吧你就。")
         LogInfo("[FATE] Waiting for vnavmesh to build...")
         repeat
             yield("/wait 1")
