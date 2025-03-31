@@ -2712,7 +2712,7 @@ function ExtractMateria()
 
     if CanExtractMateria(100) and GetInventoryFreeSlotCount() > 1 then
         if not IsAddonVisible("Materialize") then
-            yield("/generalaction \"Materia Extraction\"")
+            yield("/generalaction \"精制魔晶石\"")
             return
         end
 

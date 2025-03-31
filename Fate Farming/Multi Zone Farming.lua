@@ -27,12 +27,12 @@ FateMacro = "Fate Farming Companion"      -- Name of whatever you nicknamed the 
 -- Ctrl+F through Fate Farming.lua to find the zoneIds, or find them in Godbert
 ZonesToFarm =
 {
-    { zoneName = "Urqopacha", zoneId = 1187 },
-    { zoneName = "Kozama'uka", zoneId = 1188 },
-    { zoneName = "Yak T'el", zoneId = 1189 },
-    { zoneName = "Shaaloani", zoneId = 1190 },
-    { zoneName = "Heritage Found", zoneId = 1191 },
-    { zoneName = "Living Memory", zoneId = 1192 }
+    { zoneName = "奥阔帕恰山", zoneId = 1187 },
+    { zoneName = "克扎玛乌卡湿地", zoneId = 1188 },
+    { zoneName = "亚克特尔树海", zoneId = 1189 },
+    { zoneName = "夏劳尼荒野", zoneId = 1190 },
+    { zoneName = "遗产之地", zoneId = 1191 },
+    { zoneName = "活着的记忆", zoneId = 1192 }
 }
 
 --#endregion Settings
@@ -76,7 +76,7 @@ while true do
             LogInfo("[MultiZone] FateMacro has stopped")
             NewBicolorGemCount = GetItemCount(26807)
             if NewBicolorGemCount == OldBicolorGemCount then
-                yield("/echo Bicolor Count: "..NewBicolorGemCount)
+                yield("/echo 双色宝石数量: "..NewBicolorGemCount)
                 FarmingZoneIndex  = (FarmingZoneIndex % #ZonesToFarm) + 1
             else
                 OldBicolorGemCount = NewBicolorGemCount

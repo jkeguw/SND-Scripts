@@ -1,5 +1,5 @@
 if not GetCharacterCondition(4) then
-    yield('/gaction "mount roulette"')
+    yield('/gaction "随机坐骑"')
     yield("/wait 3")
 end
 yield("/vnav flyflag")
@@ -11,7 +11,7 @@ while PathfindInProgress() or PathIsRunning() do
 end
 
 repeat
-    yield('/ac dismount')
+    yield('/ac 跳下')
     yield("/wait 1")
 until not GetCharacterCondition(4)
 

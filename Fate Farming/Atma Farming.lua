@@ -36,18 +36,18 @@ NumberToFarm = 1                -- How many of each atma to farm
 ]]
 Atmas =
 {
-    {zoneName = "Middle La Noscea", zoneId = 134, itemName = "Atma of the Ram", itemId = 7856},
-    {zoneName = "Lower La Noscea", zoneId = 135, itemName = "Atma of the Fish", itemId = 7859},
-    {zoneName = "Western La Noscea", zoneId = 138, itemName = "Atma of the Crab", itemId = 7862},
-    {zoneName = "Upper La Noscea", zoneId = 139, itemName = "Atma of the Water-bearer", itemId = 7853},
-    {zoneName = "Western Thanalan", zoneId = 140, itemName = "Atma of the Twins", itemId = 7857},
-    {zoneName = "Central Thanalan", zoneId = 141, itemName = "Atma of the Scales", itemId = 7861},
-    {zoneName = "Eastern Thanalan", zoneId = 145, itemName = "Atma of the Bull", itemId = 7855},
-    {zoneName = "Southern Thanalan", zoneId = 146, itemName = "Atma of the Scorpion", itemId = 7852, flying=false},
-    {zoneName = "Central Shroud", zoneId = 148, itemName = "Atma of the Maiden", itemId = 7851},
-    {zoneName = "East Shroud", zoneId = 152, itemName = "Atma of the Goat", itemId = 7854},
-    {zoneName = "North Shroud", zoneId = 154, itemName = "Atma of the Archer", itemId = 7860},
-    {zoneName = "Outer La Noscea", zoneId = 180, itemName = "Atma of the Lion", itemId = 7858, flying=false}
+    {zoneName = "中拉诺西亚", zoneId = 134, itemName = "白羊之魂晶", itemId = 7856},
+    {zoneName = "拉诺西亚低地", zoneId = 135, itemName = "双鱼之魂晶", itemId = 7859},
+    {zoneName = "西拉诺西亚", zoneId = 138, itemName = "巨蟹之魂晶", itemId = 7862},
+    {zoneName = "拉诺西亚高地", zoneId = 139, itemName = "宝瓶之魂晶", itemId = 7853},
+    {zoneName = "西萨纳兰", zoneId = 140, itemName = "双子之魂晶", itemId = 7857},
+    {zoneName = "中萨纳兰", zoneId = 141, itemName = "天秤之魂晶", itemId = 7861},
+    {zoneName = "东萨纳兰", zoneId = 145, itemName = "金牛之魂晶", itemId = 7855},
+    {zoneName = "南萨纳兰", zoneId = 146, itemName = "天蝎之魂晶", itemId = 7852, flying=false},
+    {zoneName = "黑衣森林中央林区", zoneId = 148, itemName = "室女之魂晶", itemId = 7851},
+    {zoneName = "黑衣森林东部林区", zoneId = 152, itemName = "摩羯之魂晶", itemId = 7854},
+    {zoneName = "黑衣森林北部林区", zoneId = 154, itemName = "人马之魂晶", itemId = 7860},
+    {zoneName = "拉诺西亚外地", zoneId = 180, itemName = "狮子之魂晶", itemId = 7858, flying=false}
 }
 
 CharacterCondition = {

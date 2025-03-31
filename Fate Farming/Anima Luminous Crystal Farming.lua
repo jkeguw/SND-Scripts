@@ -37,12 +37,12 @@ NumberToFarm = 1                -- How many of each atma to farm
 ]]
 Atmas =
 {
-    {zoneName = "Coerthas Western Highlands", zoneId = 397, itemName = "Luminous Ice Crystal", itemId = 13569},
-    {zoneName = "The Dravanian Forelands", zoneId = 398, itemName = "Luminous Earth Crystal", itemId = 13572},
-    {zoneName = "The Dravanian Hinterlands", zoneId = 399, itemName = "Luminous Water Crystal", itemId = 13574},
-    {zoneName = "The Churning Mists", zoneId = 400, itemName = "Luminous Lightning Crystal", itemId = 13573},
-    {zoneName = "Sea of Clouds", zoneId = 401, itemName = "Luminous Wind Crystal", itemId = 13570},
-    {zoneName = "Azys Lla", zoneId = 402, itemName = "Luminous Fire Crystal", itemId = 13571}
+    {zoneName = "库尔札斯西部高地", zoneId = 397, itemName = "流光冰之水晶", itemId = 13569},
+    {zoneName = "龙堡参天高地", zoneId = 398, itemName = "流光土之水晶", itemId = 13572},
+    {zoneName = "龙堡内陆低地", zoneId = 399, itemName = "流光水之水晶", itemId = 13574},
+    {zoneName = "翻云雾海", zoneId = 400, itemName = "流光雷之水晶", itemId = 13573},
+    {zoneName = "阿巴拉提亚云海", zoneId = 401, itemName = "流光风之水晶", itemId = 13570},
+    {zoneName = "魔大陆阿济兹拉", zoneId = 402, itemName = "流光火之水晶", itemId = 13571}
 }
 
 CharacterCondition = {
@@ -85,7 +85,7 @@ function GoToDravanianHinterlands()
             PathfindAndMoveTo(148.51, 207.0, 118.47)
         end
     else
-        TeleportTo("Idyllshire")
+        TeleportTo("田园郡")
     end
 end
 
